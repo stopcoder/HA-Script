@@ -204,8 +204,11 @@ def determine_battery_mode():
         mode = "freeze_discharge"
     else:
         rest = battery_start - total_diff
-        needed = sum([record["house_load"] - record["solar"] for record in records if (not record["charge_candidate"]) and record["house_load"] > record["solar"]])
-        mode = f"standard (b: {rest}, n: {needed})" if rest >= needed else f"freeze_discharge (b: {rest}, n: {needed})" 
+        needed = sum([record["house_load"] - record["solar"] for record in records[1:] if (not record["charge_candidate"]) and record["house_load"] > record["solar"]])
+        current_hour_need = max(0, records[0]["house_load"] - records[0]["solar"])
+        if needed == 0:
+            mode = f"standard (r: {rest}, n: {needed}), c: {current_hour_need}"
+        else:
+            mode = f"standard (r: {rest}, n: {needed}), c: {current_hour_need}" if rest >= (needed + current_hour_need) else f"freeze_discharge (r: {rest}, n: {needed}, c: {current_hour_need})"
 
     state.set("my.battery_control_mode", mode, { "detail": records })
-    
