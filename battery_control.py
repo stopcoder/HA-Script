@@ -51,7 +51,7 @@ def get_solar_performance_ratio(time):
             forecast = get_solarforecast(date)
             log.debug(f"date: {date}, forecast: {forecast}")
             if forecast > 0:
-                percent = 1 + (entry["mean"] / 1000 - forecast) / forecast;
+                percent = 1 + (entry["mean"] / 1000 - forecast) / forecast
                 percentages.append(percent)
 
         return sum(percentages) / len(percentages)
@@ -63,7 +63,7 @@ def get_solarforecast(start_time):
         for index, entry in enumerate(sensor.solcast_pv_forecast_forecast_today.detailedForecast):
             # find the first entry that has a non zero estimate
             if non_zero_index == -1 and entry["pv_estimate"] > 0:
-                non_zero_index = index;
+                non_zero_index = index
             property_name = "pv_estimate10" if (index - non_zero_index) < 3 else "pv_estimate"
             if entry["period_start"].timestamp() == start_time.timestamp():
                 return (entry[property_name] + sensor.solcast_pv_forecast_forecast_today.detailedForecast[index + 1][property_name]) / 2
@@ -71,7 +71,7 @@ def get_solarforecast(start_time):
         for index, entry in enumerate(sensor.solcast_pv_forecast_forecast_tomorrow.detailedForecast):
              # find the first entry that has a non zero estimate
             if non_zero_index == -1 and entry["pv_estimate"] > 0:
-                non_zero_index = index;
+                non_zero_index = index
             property_name = "pv_estimate10" if (index - non_zero_index) < 3 else "pv_estimate"
             if entry["period_start"].timestamp() == start_time.timestamp():
                 return (entry[property_name] + sensor.solcast_pv_forecast_forecast_today.detailedForecast[index + 1][property_name]) / 2
@@ -144,9 +144,11 @@ def determine_battery_mode():
     # Step size of 1 hour
     step = timedelta(hours=1)
     
-    battery_max = int(sensor.solax_bms_battery_capacity) / 1000 * 0.85
+    battery_capatity = int(sensor.solax_bms_battery_capacity) / 1000 * 0.85
     battery = int(sensor.solax_bms_battery_capacity) / 1000 * (int(sensor.solax_battery_capacity) - 10) / 100
     battery_start = battery
+    # track the max level that the battery has been charged to during the timeline
+    battery_current_max = battery
     
     # dict structure for record in "records"
     # {
@@ -179,28 +181,32 @@ def determine_battery_mode():
         }
         
         if net_consumption < 0: # battery will be charged
-            battery = min(battery - net_consumption, battery_max)
+            battery = min(battery - net_consumption, battery_capatity)
+            battery_current_max = battery
         elif should_check:
             diff = net_consumption - battery
             if diff > 0:
-                record["charge"] = diff;
-                energy_diffs.append(diff) # this should be charged into battery at the current hour
-                battery = 0
+                can_charge = min(diff, battery_capatity - battery_current_max)
+                if can_charge > 0:
+                    record["charge"] = can_charge
+                    energy_diffs.append(can_charge) # this should be charged into battery at the current hour
+                    battery = 0
+                    battery_current_max = min(battery_current_max + can_charge, battery_capatity)
             else:
                 battery = battery - net_consumption
             
     
-        record["battery_after"] = battery;
-        records.append(record);
+        record["battery_after"] = battery
+        records.append(record)
         current_time += step
 
-    total_diff = sum(energy_diffs);
-    battery_target = min(battery_max, total_diff)
+    total_diff = sum(energy_diffs)
+    battery_target = min(battery_capatity, total_diff)
     charge_amount = battery_target - battery_start
 
     if charge_amount > 0:
         mode = f"'charge': {charge_amount} then 'freeze_discharge'"
-    elif total_diff > battery_max:
+    elif total_diff > battery_capatity:
         mode = "freeze_discharge"
     else:
         rest = battery_start - total_diff
