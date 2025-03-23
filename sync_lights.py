@@ -1,8 +1,6 @@
 @state_trigger("light.kitchen or light.stove")
+@state_active("input_boolean.sync_kitchen_lights == 'on'")
 def sync_lights(trigger_type=None, var_name=None, value=None):
-	if input_boolean.sync_kitchen_lights == "off":
-		return
-
     log.debug(f"sync light from {var_name} with state {value}");
     if var_name == "light.kitchen":
         if value == "on":
