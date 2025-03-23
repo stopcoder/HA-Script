@@ -74,7 +74,7 @@ def get_solarforecast(start_time):
                 non_zero_index = index
             property_name = "pv_estimate10" if (index - non_zero_index) < 3 else "pv_estimate"
             if entry["period_start"].timestamp() == start_time.timestamp():
-                return (entry[property_name] + sensor.solcast_pv_forecast_forecast_today.detailedForecast[index + 1][property_name]) / 2
+                return (entry[property_name] + sensor.solcast_pv_forecast_forecast_tomorrow.detailedForecast[index + 1][property_name]) / 2
     else:
         return 0
 
