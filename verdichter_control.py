@@ -26,7 +26,7 @@ def get_time_solcast_sufficient():
 
         if now > date:
             service.call("switch", "turn_off", entity_id="switch.verdichter_switch_0")
-             log.debug(f"VerdichterAutomation: turned off at {now}")
+            log.debug(f"VerdichterAutomation: turned off at {now}")
 
 
 
