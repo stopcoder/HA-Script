@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 
 @state_trigger("float(sensor.shellypro3em_fce8c0d96704_total_active_power) < 500", state_hold=60)
-@time_active("02:00:00", "06:00:00")
+@time_active("range(02:00:00, 06:00:00)")
 def get_time_solcast_sufficient():
     if switch.verdichter_switch_0 == "off":
         return
