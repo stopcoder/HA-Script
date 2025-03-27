@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+from tzlocal import get_localzone
 
 @state_trigger("float(sensor.shellypro3em_fce8c0d96704_total_active_power) < 500", state_hold=60)
 @time_active("range(02:00:00, 06:00:00)")
@@ -22,7 +23,7 @@ def get_time_solcast_sufficient():
 
     if date is not None:
         date = date + timedelta(minutes=30) - timedelta(hours=int(float(input_number.verdichter_sleep_hours)))
-        now = datetime.now()
+        now = datetime.now(get_localzone())
 
         if now > date:
             service.call("switch", "turn_off", entity_id="switch.verdichter_switch_0")
