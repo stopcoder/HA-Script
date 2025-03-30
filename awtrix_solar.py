@@ -1,14 +1,16 @@
 import json
 
 @state_trigger("sensor.solax_pv_power_total")
-def solar_production():
-    data = {
-        "text": f"{sensor.solax_pv_power_total}{sensor.solax_pv_power_total.unit_of_measurement}",
-        "icon": 49139,
-        "duration": 4
-    }
-
-    mqtt.publish(topic="awtrix_0b99e4/custom/solar", payload=json.dumps(data))
+def solar_production(value=None):
+    if float(value) > 0:
+        data = {
+            "text": f"{sensor.solax_pv_power_total}{sensor.solax_pv_power_total.unit_of_measurement}",
+            "icon": 49139,
+            "duration": 4
+        }
+        mqtt.publish(topic="awtrix_0b99e4/custom/solar", payload=json.dumps(data))
+    else:
+        mqtt.publish(topic="awtrix_0b99e4/custom/solar")
 
 
 @state_trigger("sensor.solax_battery_capacity", state_check_now=True)
