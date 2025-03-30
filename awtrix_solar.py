@@ -47,3 +47,17 @@ def wallbox():
             "duration": 4
         }
         mqtt.publish(topic="awtrix_0b99e4/custom/wallbox", payload=json.dumps(data))
+
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power")
+def heating_pump_indicator():
+    data = None
+    if float(sensor.shellypro3em_fce8c0d96704_total_active_power) > 500:
+        data = {
+            color: [255, 0, 0]
+        }
+    else:
+        data = {
+            color: [0, 0, 0]
+        }
+    
+    mqtt.publish(topic="awtrix_0b99e4/indicator1", payload=json.dumps(data))
