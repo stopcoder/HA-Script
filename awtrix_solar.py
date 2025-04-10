@@ -37,14 +37,14 @@ def solar_battery():
 
 @state_trigger("sensor.evcc_solax_evc_charge_power", state_check_now=True)
 def wallbox():
-    power = float(sensor.evcc_solax_evc_charge_power) * 1000;
+    power = round(float(sensor.evcc_solax_evc_charge_power), 1);
 
     if power < 1000:
         # delete the custom app
         mqtt.publish(topic="awtrix_0b99e4/custom/wallbox")
     else:
         data = {
-            "text": f"{power}W",
+            "text": f"{power}kW",
             "icon": 52473,
             "duration": 4
         }
