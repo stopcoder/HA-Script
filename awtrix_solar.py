@@ -9,8 +9,10 @@ def solar_production(value=None):
             "duration": 4
         }
         mqtt.publish(topic="awtrix_0b99e4/custom/solar", payload=json.dumps(data))
+        mqtt.publish(topic="awtrix_d1409c/custom/solar", payload=json.dumps(data))
     else:
         mqtt.publish(topic="awtrix_0b99e4/custom/solar")
+        mqtt.publish(topic="awtrix_d1409c/custom/solar")
 
 
 @state_trigger("sensor.solax_battery_capacity", state_check_now=True)
@@ -34,6 +36,7 @@ def solar_battery():
     }
 
     mqtt.publish(topic="awtrix_0b99e4/custom/solar_battery", payload=json.dumps(data))
+    mqtt.publish(topic="awtrix_d1409c/custom/solar_battery", payload=json.dumps(data))
 
 @state_trigger("sensor.evcc_solax_evc_charge_power", state_check_now=True)
 def wallbox():
@@ -42,6 +45,7 @@ def wallbox():
     if power < 1:
         # delete the custom app
         mqtt.publish(topic="awtrix_0b99e4/custom/wallbox")
+        mqtt.publish(topic="awtrix_d1409c/custom/wallbox")
     else:
         data = {
             "text": f"{power}kW",
@@ -49,6 +53,7 @@ def wallbox():
             "duration": 4
         }
         mqtt.publish(topic="awtrix_0b99e4/custom/wallbox", payload=json.dumps(data))
+        mqtt.publish(topic="awtrix_d1409c/custom/wallbox", payload=json.dumps(data))
 
 @state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power")
 def heating_pump_indicator():
@@ -63,3 +68,4 @@ def heating_pump_indicator():
         }
     
     mqtt.publish(topic="awtrix_0b99e4/indicator1", payload=json.dumps(data))
+    mqtt.publish(topic="awtrix_d1409c/indicator1", payload=json.dumps(data))
