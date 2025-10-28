@@ -1,4 +1,4 @@
-@state_trigger("int(sensor.leselampe_power_2) < 2")
+@state_trigger("float(sensor.leselampe_power_2) < 2")
 def turn_off_lampe():
     switch.leselampe_switch_2.turn_off()
 
