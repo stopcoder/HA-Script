@@ -8,7 +8,7 @@ def adjust_zendure_charging():
 
     diff = pv_power - house_load + zendure_input
 
-    if diff < 100 or solar_predict < 20:
+    if diff < 100 or solar_predict < 20 or binary_sensor.evcc_solax_evc_charging == "on":
         # stop charging
         number.solarflow_800_pro_input_limit.set_value(0)
     else:
