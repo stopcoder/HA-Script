@@ -14,3 +14,19 @@ def adjust_zendure_charging():
     else:
         select.solarflow_800_pro_ac_mode.select_option("input")
         number.solarflow_800_pro_input_limit.set_value(min(diff, 1000))
+
+
+@state_trigger("float(sensor.solax_pv_power_total) < 300", state_hold=30)
+def adjust_zendure_discharging():
+    house_load = float(sensor.solax_house_load)
+    pv_power = float(sensor.solax_pv_power_total)
+    zendure_output = float(sensor.solarflow_800_pro_pack_input_power)
+
+    diff = house_load - pv_power + zendure_output
+
+    if diff < 0: 
+        # stop discharging
+        number.solarflow_800_pro_output_limit.set_value(0)
+    else:
+        select.solarflow_800_pro_ac_mode.select_option("output")
+        number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
