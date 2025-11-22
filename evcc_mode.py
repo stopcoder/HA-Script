@@ -1,0 +1,18 @@
+# using state_hold to delay the execution for 30 seconds to avoid rapid changes
+@state_trigger("sensor.solax_pv_power_total", state_hold=30)
+def adjust_zendure_charging():
+    pv_power = float(sensor.solax_pv_power_total)
+    house_load = float(sensor.solax_house_load)
+    zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
+
+    evcc_mode = select.evcc_solax_evc_mode
+
+    if (evcc_mode == "off"):
+        return
+
+    diff = pv_power - house_load + zendure_input
+
+    if diff > 3500:
+        select.evcc_solax_evc_mode.select_option("minpv")
+    else:
+        select.evcc_solax_evc_mode.select_option("pv")
