@@ -13,7 +13,7 @@ def adjust_evcc_mode():
 
     diff = pv_power - house_load + zendure_input + wallbox_power
 
-    if diff > 3500:
+    if diff > 2200:
         select.evcc_solax_evc_mode.select_option("minpv")
     else:
         select.evcc_solax_evc_mode.select_option("pv")
