@@ -6,6 +6,10 @@ from tzlocal import get_localzone
 def get_time_solcast_sufficient():
     if switch.verdichter_switch_0 == "off":
         return
+
+    if weather.nussweather.temperature < 0:
+        log.debug("VerdichterAutomation: temperature below 0°C, skipping turn off")
+        return
     
     non_zero_index = -1
     date = None
@@ -32,9 +36,9 @@ def get_time_solcast_sufficient():
 
 
 @state_trigger("float(sensor.solax_pv_power_total) > 2300", state_hold=60, state_hold_false=0)
+@time_trigger("cron(0 11 * * *)")
 def turn_on_verdichter():
     if switch.verdichter_switch_0 == "off":
         now = datetime.now()
         service.call("switch", "turn_on", entity_id="switch.verdichter_switch_0")
         log.debug(f"VerdichterAutomation: turned on at {now}")
-
