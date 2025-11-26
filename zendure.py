@@ -5,12 +5,19 @@ def adjust_zendure_charging():
     house_load = float(sensor.solax_house_load)
     zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
     solar_predict = float(sensor.solcast_pv_forecast_forecast_today)
+    power_export = float(sensor.solax_grid_export)
 
     diff = pv_power - house_load + zendure_input
 
-    if diff < 100 or solar_predict < 20 or binary_sensor.evcc_solax_evc_charging == "on":
+    if diff < 100 or binary_sensor.evcc_solax_evc_charging == "on":
         # stop charging
         number.solarflow_800_pro_input_limit.set_value(0)
+    else if solar_predict < 20:
+        if power_export > 50:
+            select.solarflow_800_pro_ac_mode.select_option("input")
+            number.solarflow_800_pro_input_limit.set_value(min(power_export, 1000))
+        else:
+            number.solarflow_800_pro_input_limit.set_value(0)
     else:
         select.solarflow_800_pro_ac_mode.select_option("input")
         number.solarflow_800_pro_input_limit.set_value(min(diff, 1000))
