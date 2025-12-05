@@ -17,7 +17,8 @@ def adjust_zendure_charging():
     elif solar_predict < 20:
         select.solarflow_800_pro_ac_mode.select_option("input")
         if power_export > 50:
-            number.solarflow_800_pro_input_limit.set_value(min(power_export, 1000))
+            zendure_input = zendure_input + power_export
+            number.solarflow_800_pro_input_limit.set_value(min(zendure_input, 1000))
         else:
             zendure_input = zendure_input - power_import + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(max(0, zendure_input))
