@@ -19,7 +19,7 @@ def adjust_zendure_charging():
         if power_export > 50:
             zendure_input = zendure_input + power_export
             number.solarflow_800_pro_input_limit.set_value(min(zendure_input, 1000))
-        elif sensor.solax_inverter_bdc_status == "Charging":
+        elif sensor.solax_inverter_bdc_status == "Charge":
             number.solarflow_800_pro_input_limit.set_value(0)
         else:
             zendure_input = zendure_input - power_import + solax_battery_discharge
