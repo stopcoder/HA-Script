@@ -9,3 +9,9 @@ def handle_xiangbei_button_event(**kwargs):
 
     if command == "single":
         light.light_buchregal_light.toggle()
+
+@state_trigger("event.shelly_blu_button1_934a_button")
+def toggle_xiangbei_light():
+    attr = state.getattr("event.shelly_blu_button1_934a_button")
+    if attr["event_type"] == "press":
+        light.xiangbei_licht.toggle()

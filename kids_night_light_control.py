@@ -1,4 +1,4 @@
-@time_trigger("cron(0 21 * * *)")
+@time_trigger("cron(30 20 * * *)")
 def turn_on_night_lights():
     light.turn_on(entity_id="light.nachtlicht_mia_light", brightness=64, rgb_color=(255, 255, 197))
     light.turn_on(entity_id="light.nachtlicht_xiangbei_light", brightness=64, rgb_color=(255, 255, 197))
