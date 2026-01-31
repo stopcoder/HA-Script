@@ -50,6 +50,6 @@ def adjust_ac_2400_discharing():
     if float(sensor.solax_pv_power_total) > 300:
         number.solarflow_2400_ac_output_limit.set_value(0)
     else:
-        output_power = int(float(sensor.solax_house_load) / 500) * 500
+        output_power = int(max((float(sensor.solax_house_load) - 300), 0) / 500) * 500
         select.solarflow_2400_ac_ac_mode.select_option("output")
         number.solarflow_2400_ac_output_limit.set_value(min(output_power, 2000))
