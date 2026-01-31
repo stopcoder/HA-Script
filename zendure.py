@@ -1,6 +1,10 @@
 # using state_hold to delay the execution for 30 seconds to avoid rapid changes
 @state_trigger("sensor.solax_pv_power_total", state_hold=30)
 def adjust_zendure_charging():
+    if float(sensor.solax_pv_power_total) < 500:
+        number.solarflow_800_pro_input_limit.set_value(0)
+        return
+
     pv_power = float(sensor.solax_pv_power_total)
     house_load = float(sensor.solax_house_load)
     zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
@@ -45,11 +49,11 @@ def adjust_zendure_discharging():
         number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
 
 
-@state_trigger("sensor.solax_house_load")
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power")
 def adjust_ac_2400_discharing():
-    if float(sensor.solax_pv_power_total) > 300:
+    if float(sensor.solax_pv_power_total) > 300 or float(sensor.shellypro3em_fce8c0d96704_total_active_power) < 600:
         number.solarflow_2400_ac_output_limit.set_value(0)
     else:
-        output_power = int(max((float(sensor.solax_house_load) - 300), 0) / 500) * 500
+        output_power = int(float(sensor.shellypro3em_fce8c0d96704_total_active_power) / 500) * 500
         select.solarflow_2400_ac_ac_mode.select_option("output")
         number.solarflow_2400_ac_output_limit.set_value(min(output_power, 2000))
