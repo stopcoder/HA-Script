@@ -8,29 +8,40 @@ def adjust_zendure_charging():
     pv_power = float(sensor.solax_pv_power_total)
     house_load = float(sensor.solax_house_load)
     zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
+    zendure_2400_input = float(sensor.solarflow_2400_ac_output_pack_power)
     solar_predict = float(sensor.solcast_pv_forecast_forecast_today)
     power_export = float(sensor.solax_grid_export)
     power_import = float(sensor.solax_grid_import)
     solax_battery_discharge = min(0, float(sensor.solax_battery_power_charge))
 
-    diff = pv_power - house_load + zendure_input
+    diff = pv_power - house_load + zendure_input + zendure_2400_input
+
+    select.solarflow_800_pro_ac_mode.select_option("input")
+    select.solarflow_2400_ac_ac_mode.select_option("input")
 
     if diff < 100 or binary_sensor.evcc_solax_evc_charging == "on":
         # stop charging
         number.solarflow_800_pro_input_limit.set_value(0)
+        number.solarflow_2400_ac_input_limit.set_value(0)
     elif solar_predict < 20:
-        select.solarflow_800_pro_ac_mode.select_option("input")
         if power_export > 50:
             zendure_input = zendure_input + power_export
             number.solarflow_800_pro_input_limit.set_value(min(zendure_input, 1000))
+            number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_input - 1000, 0), 2000))
         elif sensor.solax_inverter_bdc_status == "Charge":
             number.solarflow_800_pro_input_limit.set_value(0)
+            number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             zendure_input = zendure_input - power_import + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(max(0, zendure_input))
+            number.solarflow_2400_ac_input_limit.set_value(0)
     else:
-        select.solarflow_800_pro_ac_mode.select_option("input")
         number.solarflow_800_pro_input_limit.set_value(min(diff, 1000))
+
+        if sensor.solax_inverter_bdc_status == "Charge":
+            number.solarflow_2400_ac_input_limit.set_value(0)
+        else:
+            number.solarflow_2400_ac_input_limit.set_value(min(max(diff - 1000, 0), 2000))
 
 
 @state_trigger("float(sensor.solax_pv_power_total) < 300", state_hold=30)
