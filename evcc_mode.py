@@ -5,6 +5,7 @@ def adjust_evcc_mode():
     house_load = float(sensor.solax_house_load)
     threshold = float(input_number.excessive_minimal_power_for_minpv)
     zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
+    zendure_2400_input = float(sensor.solarflow_2400_ac_output_pack_power)
     wallbox_power = float(sensor.evcc_solax_evc_charge_power) * 1000  # convert kW to W
 
     evcc_mode = select.evcc_solax_evc_mode
@@ -12,7 +13,7 @@ def adjust_evcc_mode():
     if (evcc_mode == "off" or evcc_mode == "now"):
         return
 
-    diff = pv_power - house_load + zendure_input
+    diff = pv_power - house_load + zendure_input + zendure_2400_input
 
     if house_load > wallbox_power:
         diff += wallbox_power
