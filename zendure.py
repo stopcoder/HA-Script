@@ -39,7 +39,11 @@ def adjust_zendure_charging():
         number.solarflow_800_pro_input_limit.set_value(min(diff, 1000))
 
         if sensor.solax_inverter_bdc_status == "Charge":
-            number.solarflow_2400_ac_input_limit.set_value(0)
+            if power_export > 300:
+                zendure_2400_input = zendure_2400_input + power_export
+                number.solarflow_2400_ac_input_limit.set_value(min(zendure_2400_input, 2000))
+            else:
+                number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             number.solarflow_2400_ac_input_limit.set_value(min(max(diff - 1000, 0), 2000))
 
