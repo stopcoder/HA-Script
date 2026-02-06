@@ -25,13 +25,14 @@ def adjust_zendure_charging():
         number.solarflow_2400_ac_input_limit.set_value(0)
     elif solar_predict < 20:
         if power_export > 50:
-            zendure_input = zendure_input + power_export
-            number.solarflow_800_pro_input_limit.set_value(min(zendure_input, 1000))
-            number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_input - 1000, 0), 2000))
+            total = zendure_input + zendure_2400_input + power_export
+            number.solarflow_800_pro_input_limit.set_value(min(total, 1000))
+            number.solarflow_2400_ac_input_limit.set_value(min(max(total - 1000, 0), 2000))
         elif sensor.solax_inverter_bdc_status == "Charge":
             number.solarflow_800_pro_input_limit.set_value(0)
             number.solarflow_2400_ac_input_limit.set_value(0)
         else:
+            # need to balance between zendure_800 and zendure_2400
             zendure_input = zendure_input - power_import + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(max(0, zendure_input))
             number.solarflow_2400_ac_input_limit.set_value(0)
