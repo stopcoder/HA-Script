@@ -12,7 +12,7 @@ def adjust_zendure_charging():
     solar_predict = float(sensor.solcast_pv_forecast_forecast_today)
     power_export = float(sensor.solax_grid_export)
     power_import = float(sensor.solax_grid_import)
-    solax_battery_discharge = min(0, float(sensor.solax_battery_power_charge))
+    solax_battery_charge = max(0, float(sensor.solax_battery_power_charge))
 
     diff = pv_power - house_load + zendure_input + zendure_2400_input
 
@@ -24,11 +24,11 @@ def adjust_zendure_charging():
         number.solarflow_800_pro_input_limit.set_value(0)
         number.solarflow_2400_ac_input_limit.set_value(0)
     elif solar_predict < 20:
-        if sensor.solax_inverter_bdc_status == "Charge":
+        if sensor.solax_inverter_bdc_status == "Charge" and power_export < 100:
             number.solarflow_800_pro_input_limit.set_value(0)
             number.solarflow_2400_ac_input_limit.set_value(0)
         else:
-            excessive_power = pv_power - house_load + zendure_input + zendure_2400_input
+            excessive_power = pv_power - house_load + zendure_input + zendure_2400_input - solax_battery_charge
             number.solarflow_800_pro_input_limit.set_value(min(excessive_power, 1000))
             number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power - 1000, 0), 2000))
     else:
