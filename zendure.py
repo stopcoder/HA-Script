@@ -13,7 +13,7 @@ def adjust_zendure_charging():
     power_export = float(sensor.solax_grid_export)
     power_import = float(sensor.solax_grid_import)
     # this is either 0 or a negative number
-    solax_battery_discharge = max(0, float(sensor.solax_battery_power_charge))
+    solax_battery_discharge = min(0, float(sensor.solax_battery_power_charge))
 
     diff = pv_power - house_load + zendure_input + zendure_2400_input
 
@@ -32,7 +32,7 @@ def adjust_zendure_charging():
             excessive_power = pv_power - house_load + zendure_input + zendure_2400_input + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(min(excessive_power, 1000))
 
-            if float(sensor.solarflow_800_pro_electric_level) < 90:
+            if sensor.solarflow_800_pro_connection_status != "Calibrating" and float(sensor.solarflow_800_pro_electric_level) < 90:
                 excessive_power = excessive_power - 1000
 
             number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), 2000))
