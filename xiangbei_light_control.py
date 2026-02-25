@@ -15,3 +15,5 @@ def toggle_xiangbei_light():
     attr = state.getattr("event.shelly_blu_button1_934a_button")
     if attr["event_type"] == "press":
         light.xiangbei_licht.toggle()
+    elif attr["event_type"] == "double_press":
+        light.light_buchregal_light.toggle()

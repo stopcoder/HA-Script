@@ -70,11 +70,12 @@ def adjust_zendure_discharging():
         number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
 
 
-@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power")
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power")
 def adjust_ac_2400_discharing():
-    if float(sensor.solax_pv_power_total) > 300 or float(sensor.shellypro3em_fce8c0d96704_total_active_power) < 600:
+    total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power)
+    if float(sensor.solax_pv_power_total) > 300 or total < 600:
         number.solarflow_2400_ac_output_limit.set_value(0)
     else:
-        output_power = int(float(sensor.shellypro3em_fce8c0d96704_total_active_power) / 500) * 500
+        output_power = int(total / 500) * 500
         select.solarflow_2400_ac_ac_mode.select_option("output")
         number.solarflow_2400_ac_output_limit.set_value(min(output_power, 2000))
