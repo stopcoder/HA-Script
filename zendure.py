@@ -70,9 +70,10 @@ def adjust_zendure_discharging():
         number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
 
 
-@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power")
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total")
 def adjust_ac_2400_discharing():
-    total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power)
+    stove_power_w = float(sensor.stove_power_total) * 1000  # convert kW to W
+    total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power) + stove_power_w
     if float(sensor.solax_pv_power_total) > 300 or total < 600:
         number.solarflow_2400_ac_output_limit.set_value(0)
     else:
