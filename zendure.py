@@ -32,8 +32,9 @@ def adjust_zendure_charging():
             excessive_power = pv_power - house_load + zendure_input + zendure_2400_input + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(min(excessive_power, 1000))
 
-            # 1 means "calibrating"
-            if sensor.solarflow_800_pro_connection_status != "1" and float(sensor.solarflow_800_pro_electric_level) < 90:
+            # 1 means "calibrating" for connection status
+            # 1 means "charging" for pack state
+            if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
                 excessive_power = excessive_power - 1000
 
             number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), 2000))
@@ -48,7 +49,9 @@ def adjust_zendure_charging():
             zendure_2400_input = zendure_2400_input + excessive_power 
             number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_2400_input, 0), 2000))
         else:
-            if float(sensor.solarflow_800_pro_electric_level) < 90:
+            # 1 means "calibrating" for connection status
+            # 1 means "charging" for pack state
+            if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
                 diff = diff - 1000
 
             number.solarflow_2400_ac_input_limit.set_value(min(max(diff, 0), 2000))
