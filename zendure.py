@@ -7,7 +7,7 @@ def adjust_zendure_charging():
 
     pv_power = float(sensor.solax_pv_power_total)
     house_load = float(sensor.solax_house_load)
-    zendure_input = float(sensor.solarflow_800_pro_output_pack_power)
+    zendure_input = float(sensor.solarflow_800_pro_output_pack_power) - float(sensor.solarflow_800_pro_solar_input_power)
     zendure_2400_input = float(sensor.solarflow_2400_ac_output_pack_power)
     solar_predict = float(sensor.solcast_pv_forecast_forecast_today)
     power_export = float(sensor.solax_grid_export)
