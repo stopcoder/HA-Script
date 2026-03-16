@@ -1,3 +1,8 @@
+# Constants for Zendure power limits
+ZENDURE_800_MAX_INPUT = 1000
+ZENDURE_2400_MAX_INPUT = 2300
+ZENDURE_2400_MAX_OUTPUT = 2000
+
 # using state_hold to delay the execution for 30 seconds to avoid rapid changes
 @state_trigger("sensor.solax_pv_power_total", state_hold=30)
 def adjust_zendure_charging():
@@ -30,31 +35,31 @@ def adjust_zendure_charging():
             number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             excessive_power = pv_power - house_load + zendure_input + zendure_2400_input + solax_battery_discharge
-            number.solarflow_800_pro_input_limit.set_value(min(excessive_power, 1000))
+            number.solarflow_800_pro_input_limit.set_value(min(excessive_power, ZENDURE_800_MAX_INPUT))
 
             # 1 means "calibrating" for connection status
             # 1 means "charging" for pack state
             if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
-                excessive_power = excessive_power - 1000
+                excessive_power = excessive_power - ZENDURE_800_MAX_INPUT
 
-            number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), 2000))
+            number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), ZENDURE_2400_MAX_INPUT))
     else:
-        number.solarflow_800_pro_input_limit.set_value(min(diff, 1000))
+        number.solarflow_800_pro_input_limit.set_value(min(diff, ZENDURE_800_MAX_INPUT))
 
         if sensor.solax_inverter_bdc_status == "Charge":
             # provide minimum charging power to solax battery
             solax_battery_power_charge = max(float(sensor.solax_battery_power_charge), 3000)
 
             excessive_power = pv_power - house_load - solax_battery_power_charge
-            zendure_2400_input = zendure_2400_input + excessive_power 
-            number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_2400_input, 0), 2000))
+            zendure_2400_input = zendure_2400_input + excessive_power
+            number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_2400_input, 0), ZENDURE_2400_MAX_INPUT))
         else:
             # 1 means "calibrating" for connection status
             # 1 means "charging" for pack state
             if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
-                diff = diff - 1000
+                diff = diff - ZENDURE_800_MAX_INPUT
 
-            number.solarflow_2400_ac_input_limit.set_value(min(max(diff, 0), 2000))
+            number.solarflow_2400_ac_input_limit.set_value(min(max(diff, 0), ZENDURE_2400_MAX_INPUT))
 
 
 @state_trigger("float(sensor.solax_pv_power_total) < 300", state_hold=30)
@@ -82,4 +87,4 @@ def adjust_ac_2400_discharing():
     else:
         output_power = int(total / 500) * 500
         select.solarflow_2400_ac_ac_mode.select_option("output")
-        number.solarflow_2400_ac_output_limit.set_value(min(output_power, 2000))
+        number.solarflow_2400_ac_output_limit.set_value(min(output_power, ZENDURE_2400_MAX_OUTPUT))
