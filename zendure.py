@@ -82,9 +82,20 @@ def adjust_zendure_discharging():
 def adjust_ac_2400_discharing():
     stove_power_w = float(sensor.stove_power_total) * 1000  # convert kW to W
     total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power) + stove_power_w
-    if float(sensor.solax_pv_power_total) > 300 or total < 600:
+    soc_800 = float(sensor.solarflow_800_pro_electric_level)
+
+    # When solarflow 800 SOC is low, provide baseline 300W output
+    baseline_output = 300 if soc_800 <= 10 else 0
+
+    if float(sensor.solax_pv_power_total) > 300:
         number.solarflow_2400_ac_output_limit.set_value(0)
+    elif total < 600:
+        number.solarflow_2400_ac_output_limit.set_value(baseline_output)
+        if baseline_output > 0:
+            select.solarflow_2400_ac_ac_mode.select_option("output")
     else:
         output_power = int(total / 500) * 500
+        # Use the higher of baseline or calculated power for big consumers
+        output_power = max(output_power, baseline_output)
         select.solarflow_2400_ac_ac_mode.select_option("output")
         number.solarflow_2400_ac_output_limit.set_value(min(output_power, ZENDURE_2400_MAX_OUTPUT))
