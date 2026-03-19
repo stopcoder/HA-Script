@@ -47,8 +47,8 @@ def adjust_zendure_charging():
         number.solarflow_800_pro_input_limit.set_value(min(diff, ZENDURE_800_MAX_INPUT))
 
         if sensor.solax_inverter_bdc_status == "Charge":
-            # provide minimum charging power to solax battery
-            solax_battery_power_charge = max(float(sensor.solax_battery_power_charge), 3000)
+            # limit maximum charging power to solax battery
+            solax_battery_power_charge = min(float(sensor.solax_battery_power_charge), 3000)
 
             excessive_power = pv_power - house_load - solax_battery_power_charge
             zendure_2400_input = zendure_2400_input + excessive_power
