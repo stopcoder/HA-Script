@@ -31,13 +31,17 @@ def adjust_zendure_charging():
         number.solarflow_2400_ac_input_limit.set_value(0)
     elif binary_sensor.evcc_solax_evc_charging == "on":
         # wallbox is charging - reserve 4200W for it
-        if diff <= 4200:
+        # wallbox charging power is already included in house_load, so we need to add it back and reserve 4200W
+        evcc_charge_power = float(sensor.evcc_solax_evc_charge_power) * 1000  # convert kW to W
+        adjusted_diff = diff + evcc_charge_power  # add back current wallbox power
+
+        if adjusted_diff <= 4200:
             # not enough power, stop both batteries
             number.solarflow_800_pro_input_limit.set_value(0)
             number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             # enough power - reduce battery charging to give wallbox 4200W
-            available_for_batteries = diff - 4200
+            available_for_batteries = adjusted_diff - 4200
 
             # Reduce 2400 AC first
             zendure_2400_limit = min(available_for_batteries, ZENDURE_2400_MAX_INPUT)
