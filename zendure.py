@@ -25,10 +25,28 @@ def adjust_zendure_charging():
     select.solarflow_800_pro_ac_mode.select_option("input")
     select.solarflow_2400_ac_ac_mode.select_option("input")
 
-    if diff < 100 or binary_sensor.evcc_solax_evc_charging == "on":
-        # stop charging
+    if diff < 100:
+        # stop charging - not enough power
         number.solarflow_800_pro_input_limit.set_value(0)
         number.solarflow_2400_ac_input_limit.set_value(0)
+    elif binary_sensor.evcc_solax_evc_charging == "on":
+        # wallbox is charging - reserve 4200W for it
+        if diff <= 4200:
+            # not enough power, stop both batteries
+            number.solarflow_800_pro_input_limit.set_value(0)
+            number.solarflow_2400_ac_input_limit.set_value(0)
+        else:
+            # enough power - reduce battery charging to give wallbox 4200W
+            available_for_batteries = diff - 4200
+
+            # Reduce 2400 AC first
+            zendure_2400_limit = min(available_for_batteries, ZENDURE_2400_MAX_INPUT)
+            number.solarflow_2400_ac_input_limit.set_value(zendure_2400_limit)
+
+            # If there's still power left, allocate to 800
+            remaining = available_for_batteries - zendure_2400_limit
+            zendure_800_limit = min(max(remaining, 0), ZENDURE_800_MAX_INPUT)
+            number.solarflow_800_pro_input_limit.set_value(zendure_800_limit)
     elif solar_predict < 20:
         if sensor.solax_inverter_bdc_status == "Charge" and power_export < 100:
             number.solarflow_800_pro_input_limit.set_value(0)
