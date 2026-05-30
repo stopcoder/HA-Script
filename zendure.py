@@ -100,10 +100,10 @@ def adjust_zendure_discharging():
         number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
 
 
-@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total")
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total", "sensor.ac_scm50_power", "sensor.shellypmminig3_d0cf13d578f4_power")
 def adjust_ac_2400_discharing():
     stove_power_w = float(sensor.stove_power_total) * 1000  # convert kW to W
-    total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power) + stove_power_w
+    total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power) + stove_power_w + float(sensor.ac_scm50_power) + float(sensor.shellypmminig3_d0cf13d578f4_power)
     soc_800 = float(sensor.solarflow_800_pro_electric_level)
 
     # When solarflow 800 SOC is low, provide baseline 300W output
