@@ -99,7 +99,8 @@ def determine_battery_mode():
     entries_to_check = []
     
     # get the price of the current hour in the epex data
-    for index, entry in enumerate(sensor.epex_spot_data_net_price.data):
+    epex_data = state_attr("sensor.epex_spot_data_net_price", "data")
+    for index, entry in enumerate(epex_data):
         if datetime.fromisoformat(entry['start_time']) <= now < datetime.fromisoformat(entry['end_time']):
             matching_entry = entry
             entry_index = index
@@ -111,7 +112,7 @@ def determine_battery_mode():
     
     # get the time peroid where the price is cheaper than the price of the current hour
     # for all the hours in between, check whether a potential calculation based on consumption and solar generation needs to be done
-    for index, entry in enumerate(sensor.epex_spot_data_net_price.data[entry_index+1:], start=entry_index+1):
+    for index, entry in enumerate(epex_data[entry_index+1:], start=entry_index+1):
         if entry["price_per_kwh"] < matching_entry["price_per_kwh"]:
             stop_entry = entry
             break
@@ -136,7 +137,7 @@ def determine_battery_mode():
     if stop_entry:
         end_time = datetime.fromisoformat(stop_entry["start_time"])
     else:
-        end_time = datetime.fromisoformat(sensor.epex_spot_data_net_price.data[-1]["end_time"])
+        end_time = datetime.fromisoformat(epex_data[-1]["end_time"])
     consumption_data = get_consumption_in_last_week(start_time - timedelta(hours=1))
     entry_start_times = [datetime.fromisoformat(entry["start_time"]) for entry in entries_to_check]
     solar_ratio = get_solar_performance_ratio(now)
