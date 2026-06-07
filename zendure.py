@@ -100,8 +100,20 @@ def adjust_zendure_discharging():
         number.solarflow_800_pro_output_limit.set_value(min(diff, 300))
 
 
-@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total", "sensor.ac_scm50_power", "sensor.shellypmminig3_d0cf13d578f4_power")
+@state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total", "sensor.ac_scm50_power", "sensor.shellypmminig3_d0cf13d578f4_power", "sensor.solax_house_load", "sensor.solax_pv_power_total", "input_boolean.solarflow2400_full_cover")
 def adjust_ac_2400_discharing():
+    if input_boolean.solarflow2400_full_cover == "on":
+        # Full-cover mode: cover the entire house deficit (house_load - pv_power_total)
+        diff = float(sensor.solax_house_load) - float(sensor.solax_pv_power_total)
+        if diff > 0:
+            # Ceiling to nearest 100W without importing math
+            output_power = -(-int(diff) // 100) * 100
+            select.solarflow_2400_ac_ac_mode.select_option("output")
+            number.solarflow_2400_ac_output_limit.set_value(min(output_power, ZENDURE_2400_MAX_OUTPUT))
+        else:
+            number.solarflow_2400_ac_output_limit.set_value(0)
+        return
+
     stove_power_w = float(sensor.stove_power_total) * 1000  # convert kW to W
     total = float(sensor.shellypro3em_fce8c0d96704_total_active_power) + float(sensor.dishwasher_power) + stove_power_w + float(sensor.ac_scm50_power) + float(sensor.shellypmminig3_d0cf13d578f4_power)
     soc_800 = float(sensor.solarflow_800_pro_electric_level)
