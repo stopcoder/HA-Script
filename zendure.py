@@ -102,10 +102,11 @@ def adjust_zendure_discharging():
 
 @state_trigger("sensor.shellypro3em_fce8c0d96704_total_active_power", "sensor.dishwasher_power", "sensor.stove_power_total", "sensor.ac_scm50_power", "sensor.shellypmminig3_d0cf13d578f4_power", "sensor.solax_house_load", "sensor.solax_pv_power_total", "input_boolean.solarflow2400_full_cover")
 def adjust_ac_2400_discharing():
-    if input_boolean.solarflow2400_full_cover == "on" or float(sensor.solax_battery_capacity) < 11:
+    if (input_boolean.solarflow2400_full_cover == "on" or float(sensor.solax_battery_capacity) < 11) and float(sensor.solax_pv_power_total) < 1500:
         # Full-cover mode: cover the entire house deficit (house_load - pv_power_total).
-        # house_load already reflects 2400 discharge reducing grid draw, so add own
-        # output back to compute the true deficit.
+        # Only active when solar production is low (<1500W); otherwise let solar
+        # cover the load. house_load already reflects 2400 discharge reducing
+        # grid draw, so add own output back to compute the true deficit.
         zendure_2400_output = float(sensor.solarflow_2400_ac_pack_input_power)
         diff = float(sensor.solax_house_load) - float(sensor.solax_pv_power_total) + zendure_2400_output
         if diff > 0:
