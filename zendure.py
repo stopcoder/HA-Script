@@ -89,10 +89,17 @@ def adjust_zendure_discharging():
     house_load = float(sensor.solax_house_load)
     pv_power = float(sensor.solax_pv_power_total)
     zendure_output = float(sensor.solarflow_800_pro_pack_input_power)
+    soc_800 = float(sensor.solarflow_800_pro_electric_level)
+
+    # 2400 full-cover absorbs the house deficit; hold 800 at 300W baseline
+    if input_boolean.solarflow2400_full_cover == "on" and soc_800 > 10:
+        select.solarflow_800_pro_ac_mode.select_option("output")
+        number.solarflow_800_pro_output_limit.set_value(300)
+        return
 
     diff = house_load - pv_power + zendure_output
 
-    if diff < 0: 
+    if diff < 0:
         # stop discharging
         number.solarflow_800_pro_output_limit.set_value(0)
     else:
