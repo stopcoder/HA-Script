@@ -3,6 +3,10 @@ ZENDURE_800_MAX_INPUT = 1000
 ZENDURE_2400_MAX_INPUT = 2300
 ZENDURE_2400_MAX_OUTPUT = 2000
 
+# TEMPORARY: disable SolarFlow 2400 AC charging control (input_limit writes).
+# Set to False to re-enable. Does NOT affect 800 Pro charging or 2400 AC discharging.
+DISABLE_2400_CHARGING = False
+
 # using state_hold to delay the execution for 30 seconds to avoid rapid changes
 @state_trigger("sensor.solax_pv_power_total", state_hold=30)
 def adjust_zendure_charging():
@@ -28,7 +32,7 @@ def adjust_zendure_charging():
     if diff < 100:
         # stop charging - not enough power
         number.solarflow_800_pro_input_limit.set_value(0)
-        number.solarflow_2400_ac_input_limit.set_value(0)
+        if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(0)
     elif binary_sensor.evcc_solax_evc_charging == "on":
         # wallbox is charging - reserve 4200W for it
         # wallbox charging power is already included in house_load, so we need to add it back and reserve 4200W
@@ -38,14 +42,14 @@ def adjust_zendure_charging():
         if adjusted_diff <= 4200:
             # not enough power, stop both batteries
             number.solarflow_800_pro_input_limit.set_value(0)
-            number.solarflow_2400_ac_input_limit.set_value(0)
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             # enough power - reduce battery charging to give wallbox 4200W
             available_for_batteries = adjusted_diff - 4200
 
             # Reduce 2400 AC first
             zendure_2400_limit = min(available_for_batteries, ZENDURE_2400_MAX_INPUT)
-            number.solarflow_2400_ac_input_limit.set_value(zendure_2400_limit)
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(zendure_2400_limit)
 
             # If there's still power left, allocate to 800
             remaining = available_for_batteries - zendure_2400_limit
@@ -54,17 +58,17 @@ def adjust_zendure_charging():
     elif solar_predict < 20:
         if sensor.solax_inverter_bdc_status == "Charge" and power_export < 100:
             number.solarflow_800_pro_input_limit.set_value(0)
-            number.solarflow_2400_ac_input_limit.set_value(0)
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(0)
         else:
             excessive_power = pv_power - house_load + zendure_input + zendure_2400_input + solax_battery_discharge
             number.solarflow_800_pro_input_limit.set_value(min(excessive_power, ZENDURE_800_MAX_INPUT))
 
-            # 1 means "calibrating" for connection status
-            # 1 means "charging" for pack state
-            if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
+            # When 800 is actively charging, its AC draw consumes PV excess.
+            # Subtract so 2400 only gets the remainder (avoids importing from grid).
+            if sensor.solarflow_800_pro_pack_state == "1":
                 excessive_power = excessive_power - ZENDURE_800_MAX_INPUT
 
-            number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), ZENDURE_2400_MAX_INPUT))
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(min(max(excessive_power, 0), ZENDURE_2400_MAX_INPUT))
     else:
         number.solarflow_800_pro_input_limit.set_value(min(diff, ZENDURE_800_MAX_INPUT))
 
@@ -74,14 +78,14 @@ def adjust_zendure_charging():
 
             excessive_power = pv_power - house_load - solax_battery_power_charge
             zendure_2400_input = zendure_2400_input + excessive_power
-            number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_2400_input, 0), ZENDURE_2400_MAX_INPUT))
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(min(max(zendure_2400_input, 0), ZENDURE_2400_MAX_INPUT))
         else:
-            # 1 means "calibrating" for connection status
-            # 1 means "charging" for pack state
-            if sensor.solarflow_800_pro_connection_status != "1" and sensor.solarflow_800_pro_pack_state == "1":
+            # When 800 is actively charging, its AC draw consumes PV excess.
+            # Subtract so 2400 only gets the remainder (avoids importing from grid).
+            if sensor.solarflow_800_pro_pack_state == "1":
                 diff = diff - ZENDURE_800_MAX_INPUT
 
-            number.solarflow_2400_ac_input_limit.set_value(min(max(diff, 0), ZENDURE_2400_MAX_INPUT))
+            if not DISABLE_2400_CHARGING: number.solarflow_2400_ac_input_limit.set_value(min(max(diff, 0), ZENDURE_2400_MAX_INPUT))
 
 
 @state_trigger("float(sensor.solax_pv_power_total) < 300", state_hold=30)
